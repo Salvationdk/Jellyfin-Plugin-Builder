@@ -1,3 +1,22 @@
-{
-  "packages": []
-}
+[
+  {
+    "guid": "e7d8a0d1-c989-4740-98c9-51211f7c95f7",
+    "name": "! Deprecation Warning",
+    "description": "You have stopped receiving updates. See here for more details: https://github.com/0belous/Jellyfin-Universal-Catalogue/blob/main/deprecation.md  \n  \nUniversal Repo:  \nGenerated: 20:33 UTC  \nSource: internal  \nGithub: https://github.com/0belous/Jellyfin-Universal-Catalogue",
+    "overview": "Deprecation Warning",
+    "owner": "Obelous",
+    "category": "Miscellaneous",
+    "image": "upr-main.png",
+    "imageUrl": "https://raw.githubusercontent.com/0belous/universal-plugin-repo/refs/heads/main/images/! Deprecation Warning.png",
+    "versions": [
+      {
+        "version": "0.0.0",
+        "changelog": "Placeholder",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/0belous/Jellyfin-Universal-Catalogue",
+        "checksum": "a733397ad3fcbae327f76c1179a6a037",
+        "timestamp": "2026-05-16T20:33:53.127Z"
+      }
+    ]
+  }
+]
