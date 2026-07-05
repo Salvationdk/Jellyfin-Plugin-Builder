@@ -1,38 +1,24 @@
 import json
 import requests
-import re
+import os
 
-# URL til README-filen fra Awesome Jellyfin
-README_URL = "https://raw.githubusercontent.com/awesome-jellyfin/awesome-jellyfin/master/README.md"
+# Liste over kilder
+source_url = "https://raw.githubusercontent.com/0belous/Jellyfin-Universal-Plugin-Repo/master/manifest.json"
 
-def get_plugins():
-    plugins = []
-    # Vi starter med det sikre universelle repo
-    manifests = ["https://raw.githubusercontent.com/0belous/Jellyfin-Universal-Plugin-Repo/master/manifest.json"]
+print(f"Starter manifest-bygning i: {os.getcwd()}")
+
+try:
+    response = requests.get(source_url, timeout=15)
+    data = response.json()
     
-    # Hent README
-    response = requests.get(README_URL)
-    # Find alle links der ligner plugin-repos (f.eks. https://github.com/niels-b/IntroSkipper)
-    links = re.findall(r'https://github\.com/([\w-]+/[\w-]+)', response.text)
+    # Skriv direkte til manifest.json i roden af repository
+    with open("manifest.json", "w") as f:
+        json.dump(data, f, indent=2)
     
-    for repo in set(links):
-        if "jellyfin-" in repo.lower():
-            # Prøv at finde manifest i master eller main
-            for branch in ["master", "main"]:
-                url = f"https://raw.githubusercontent.com/{repo}/{branch}/manifest.json"
-                if requests.get(url, timeout=5).status_code == 200:
-                    manifests.append(url)
-                    break
-    return manifests
-
-combined = {"packages": []}
-for url in get_plugins():
-    try:
-        data = requests.get(url).json()
-        if "packages" in data:
-            combined["packages"].extend(data["packages"])
-    except:
-        continue
-
-with open("manifest.json", "w") as f:
-    json.dump(combined, f, indent=2)
+    # Tjek om filen faktisk blev oprettet
+    if os.path.exists("manifest.json"):
+        print("Succes: manifest.json blev oprettet/opdateret.")
+    
+except Exception as e:
+    print(f"Fejl: {e}")
+    
