@@ -1,48 +1,49 @@
 import json
 import requests
 import re
-from bs4 import BeautifulSoup
 
-AWESOME_URL = "https://github.com/awesome-jellyfin/awesome-jellyfin"
+README_URL = "https://raw.githubusercontent.com/awesome-jellyfin/awesome-jellyfin/master/README.md"
 
-def get_repo_links():
-    repos = set()
-    try:
-        response = requests.get(AWESOME_URL, timeout=10)
-        soup = BeautifulSoup(response.text, 'html.parser')
-        # Find alle links i README'en
-        for a in soup.select('article a[href]'):
-            href = a['href']
-            # Filtrer for at finde GitHub repo links (excl. subpages)
-            match = re.search(r'https://github\.com/([\w-]+/[\w-]+)', href)
-            if match:
-                repos.add(match.group(1))
-    except Exception as e:
-        print(f"Scraping fejl: {e}")
-    return repos
-
-def build_manifest():
-    final_manifest = {"packages": []}
-    repo_list = get_repo_links()
+def scrape_awesome_jellyfin():
+    # 1. Hent hele README-filen som tekst
+    response = requests.get(README_URL)
+    text = response.text
     
-    print(f"Fandt {len(repo_list)} repositories. Starter validering...")
+    # 2. Find alle GitHub-links der ligner plugins
+    # Den finder alle links der indeholder 'github.com' og 'jellyfin-plugin-'
+    raw_links = re.findall(r'https://github\.com/([\w-]+/[\w-]+)', text)
+    
+    # Filtrer kun dem der har 'plugin' i navnet
+    plugin_repos = [repo for repo in set(raw_links) if "plugin" in repo.lower()]
+    
+    manifests = []
+    print(f"Fandt {len(plugin_repos)} potentielle plugin-repos.")
 
-    for repo in repo_list:
-        # Tjek de to mest almindelige steder for et manifest
+    # 3. Tjek hver repo for en manifest.json
+    for repo in plugin_repos:
         for branch in ["master", "main"]:
             url = f"https://raw.githubusercontent.com/{repo}/{branch}/manifest.json"
             try:
-                resp = requests.get(url, timeout=5)
-                if resp.status_code == 200:
-                    data = resp.json()
-                    if "packages" in data:
-                        final_manifest["packages"].extend(data["packages"])
-                        print(f"Fandt plugin i: {repo}")
-                        break
+                # Tjek om filen eksisterer
+                check = requests.head(url, timeout=5)
+                if check.status_code == 200:
+                    manifests.append(url)
+                    print(f"Fundet manifest i: {repo}")
+                    break
             except:
                 continue
-                
-    with open("manifest.json", "w") as f:
-        json.dump(final_manifest, f, indent=2)
+    return manifests
 
-build_manifest()
+# Byg det samlede manifest
+combined = {"packages": []}
+for url in scrape_awesome_jellyfin():
+    try:
+        data = requests.get(url, timeout=10).json()
+        if "packages" in data:
+            combined["packages"].extend(data["packages"])
+    except:
+        continue
+
+with open("manifest.json", "w") as f:
+    json.dump(combined, f, indent=2)
+    
