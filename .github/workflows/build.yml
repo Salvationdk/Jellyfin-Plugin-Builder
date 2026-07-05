@@ -14,7 +14,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with: {python-version: '3.9'}
-      - run: pip install requests
+      - run: pip install requests beautifulsoup4
       - run: python build_manifest.py
       - name: Push changes
         run: |
